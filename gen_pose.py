@@ -19,7 +19,8 @@ import os
 import numpy as np
 from PIL import Image
 from ultralytics import YOLO
-from fix_pose import fix_missing_keypoints
+
+
 # ── Mapping COCO-17 index → BODY_25 index ───────────────────────────────────
 # COCO  : 0 Nose | 1 LEye | 2 REye | 3 LEar | 4 REar
 #         5 LShoulder | 6 RShoulder | 7 LElbow | 8 RElbow
@@ -95,8 +96,8 @@ def coco17_to_body25(xy: np.ndarray, conf: np.ndarray | None) -> list[float]:
     body25[8] = _midpoint(body25[9], body25[12])
 
     # Fixing missing keypoints
-
-    body25 = fix_missing_keypoints(body25)
+    #body25 = fix_keypoints(body25)
+    # print(body25)
 
 
     # Flatten
@@ -212,6 +213,6 @@ if __name__ == "__main__":
     gen_pose(
         image_dir="datasets/test/image",
         output_dir="test_pose",
-        model_path="yolov8n-pose.pt",
-        device="cpu",
+        model_path="best.pt",
+        device="cuda",
     )

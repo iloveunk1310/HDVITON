@@ -12,7 +12,6 @@ from kornia.filters import GaussianBlur2d
 from datasets import VITONDataset, VITONDataLoader
 from networks import SegGenerator, GMM, ALIASGenerator
 from utils import gen_noise, load_checkpoint, save_images
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_opt():
     """
@@ -36,7 +35,7 @@ def get_opt():
     parser.add_argument('--custom_pose', action='store_true') #pose json + map tự tạo
     parser.add_argument('--custom_pose_json_dir', type=str, default='test_pose') #thư mục lưu trữ pose json
     parser.add_argument('--custom_pose_img_dir', type=str, default='test_pose_img') #thư mục lưu trữ pose img
-    parser.add_argument('--custom_pose_model', type=str, default='yolov8n-pose.pt') #mô hình sử dụng
+    parser.add_argument('--custom_pose_model', type=str, default='best.pt') #mô hình sử dụng
     parser.add_argument('--custom_pose_device', type=str, default='') #thiết bị sử dụng (cpu mặc định)
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/') 
     parser.add_argument('--save_dir', type=str, default='./results/')
@@ -133,6 +132,7 @@ def test(opt, seg, gmm, alias):
     """
     up = nn.Upsample(size=(opt.load_height, opt.load_width), mode='bilinear')
     gauss = GaussianBlur2d((15, 15), (3, 3))
+    device = opt.device
     gauss.to(device)
 
     test_dataset = VITONDataset(opt)
@@ -209,12 +209,12 @@ def test(opt, seg, gmm, alias):
 def main():
     opt = get_opt()
     print(opt)
-
+    device = opt.device
     if not os.path.exists(os.path.join(opt.save_dir, opt.name)):
         os.makedirs(os.path.join(opt.save_dir, opt.name))
 
     ensure_custom_pose_assets(opt)
-
+    
     seg = SegGenerator(opt, input_nc=opt.semantic_nc + 8, output_nc=opt.semantic_nc)
     gmm = GMM(opt, inputA_nc=7, inputB_nc=3)
     opt.semantic_nc = 7
@@ -224,7 +224,7 @@ def main():
     load_checkpoint(seg, os.path.join(opt.checkpoint_dir, opt.seg_checkpoint))
     load_checkpoint(gmm, os.path.join(opt.checkpoint_dir, opt.gmm_checkpoint))
     load_checkpoint(alias, os.path.join(opt.checkpoint_dir, opt.alias_checkpoint))
-
+    torch.cuda.empty_cache()
     seg.to(device).eval()
     gmm.to(device).eval()
     alias.to(device).eval()
