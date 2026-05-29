@@ -90,7 +90,7 @@ Checkpoint đặt trong:
 - `checkpoints/alias_final.pth`
 - `checkpoints/best_pose_unet.pth`
 
-- Drive dẫn đến link checkpoint: [Data]([https://drive.google.com/drive/folders/0B8kXrnobEVh9fnJHX3lCZzEtd20yUVAtTk5HdWk2OVV0RGl6YXc0NWhMOTlvb1FKX3Z1OUk?resourcekey=0-OIXHrDwCX8ChjypUbJo4fQ&usp=sharing](https://drive.google.com/drive/folders/1c0uoMN44aCYdA7GXYhjkw7cqdPBuDeg1?usp=sharing))
+- Drive dẫn đến link checkpoint: [Data](https://drive.google.com/drive/folders/1c0uoMN44aCYdA7GXYhjkw7cqdPBuDeg1?usp=sharing)
 
 ## 5. Cách thử nghiệm
 
