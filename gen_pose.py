@@ -213,6 +213,6 @@ if __name__ == "__main__":
     gen_pose(
         image_dir="datasets/test/image",
         output_dir="test_pose",
-        model_path="best.pt",
+        model_path="best_pose.pt",
         device="cuda",
     )
