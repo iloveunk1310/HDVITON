@@ -20,13 +20,20 @@ So với VITON-HD ban đầu, đồ án hiện tại đã bổ sung/cập nhật
   - Hỗ trợ cache qua `--custom_mask_cache_dir` (ví dụ: `test_mask`).
 
 - **Custom pose từ YOLO + render pose image**
+  - Fine-tune model YOLO pose với ground truth là openpose-json.
   - Thêm cờ `--custom_pose` trong `test.py`.
   - Tự động sinh:
     - JSON keypoints vào `test_pose/` (qua `gen_pose.py`)
     - Ảnh pose `_rendered.png` vào `test_pose_img/` (qua `gen_pose_img.py`)
   - Các thư mục `datasets/test/openpose-json` và `datasets/test/openpose-img` được giữ nguyên để không ảnh hưởng bộ data gốc.
-
-
+ 
+- **Custom parse từ mô hình RES-UNet: image + pose map -> parse map**
+  - Huấn luyện mô hình RES-Unet nhỏ nhằm tạo human parse chính xác nhất so với VITON-HD parse-v3.
+  - Thêm cờ `--custom_parse` trong `test.py`.
+  - Tự động sinh:
+    - Parse mask vào `test_parse_mask/` (qua `gen_parse.py`)
+    - Parse mask color vào `test_parse/`
+  
 - **Fix tương thích Kornia/PyTorch**
   - `test.py`: đổi Gaussian blur sang `kornia.filters.GaussianBlur2d`.
   - `networks.py`: bỏ `.cuda()` để chạy được trên môi trường CPU-only.
@@ -34,6 +41,10 @@ So với VITON-HD ban đầu, đồ án hiện tại đã bổ sung/cập nhật
 - **Tiện ích bổ sung**
   - `fix_pose.py`: bổ sung logic vá keypoint bị thiếu.
   - `measure.py`: chạy test các chỉ số của kết quả (so sánh với ground truth)
+ 
+- **Link huấn luyện mô hình**
+  - Nhóm huấn luyện trên Kaggle để tiết kiệm thời gian và chi phí.
+  - Link (bao gồm cả RES-Unet và fine-tune YOLO): [Kaggle](https://www.kaggle.com/code/minhnewbi/vton-hd)
 
 ## 3. Cài đặt
 
@@ -56,7 +67,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 ### 3.3 Cài thư viện cần thiết
 
 ```bash
-pip install opencv-python pillow numpy kornia ultralytics rembg onnxruntime
+pip install opencv-python pillow numpy kornia ultralytics rembg onnxruntime tqdm
 ```
 
 ## 4. Cấu trúc dữ liệu tối thiểu để test
@@ -77,8 +88,9 @@ Checkpoint đặt trong:
 - `checkpoints/seg_final.pth`
 - `checkpoints/gmm_final.pth`
 - `checkpoints/alias_final.pth`
+- `checkpoints/best_pose_unet.pth`
 
-- Drive dẫn đến link checkpoint: [Data](https://drive.google.com/drive/folders/0B8kXrnobEVh9fnJHX3lCZzEtd20yUVAtTk5HdWk2OVV0RGl6YXc0NWhMOTlvb1FKX3Z1OUk?resourcekey=0-OIXHrDwCX8ChjypUbJo4fQ&usp=sharing)
+- Drive dẫn đến link checkpoint: [Data]([https://drive.google.com/drive/folders/0B8kXrnobEVh9fnJHX3lCZzEtd20yUVAtTk5HdWk2OVV0RGl6YXc0NWhMOTlvb1FKX3Z1OUk?resourcekey=0-OIXHrDwCX8ChjypUbJo4fQ&usp=sharing](https://drive.google.com/drive/folders/1c0uoMN44aCYdA7GXYhjkw7cqdPBuDeg1?usp=sharing))
 
 ## 5. Cách thử nghiệm
 
