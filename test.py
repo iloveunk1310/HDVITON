@@ -35,8 +35,12 @@ def get_opt():
     parser.add_argument('--custom_pose', action='store_true') #pose json + map tự tạo
     parser.add_argument('--custom_pose_json_dir', type=str, default='test_pose') #thư mục lưu trữ pose json
     parser.add_argument('--custom_pose_img_dir', type=str, default='test_pose_img') #thư mục lưu trữ pose img
-    parser.add_argument('--custom_pose_model', type=str, default='best.pt') #mô hình sử dụng
+    parser.add_argument('--custom_pose_model', type=str, default='best_pose.pt') #mô hình sử dụng
     parser.add_argument('--custom_pose_device', type=str, default='') #thiết bị sử dụng (cpu mặc định)
+    parser.add_argument('--custom_parse', action='store_true') #human parse tự tạo
+    parser.add_argument('--custom_parse_dir', type=str, default='test_parse_mask') #thư mục lưu trữ parse
+    parser.add_argument('--custom_parse_color_dir', type=str, default='test_parse') # thư mục lưu trữ parse màu sắc
+    parser.add_argument('--custom_parse_model', type=str, default='checkpoints/best_pose_unet.pth') # model parse
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/') 
     parser.add_argument('--save_dir', type=str, default='./results/')
 
@@ -117,6 +121,33 @@ def ensure_custom_pose_assets(opt):
         canvas_w=opt.load_width,
         canvas_h=opt.load_height,
         overlay=False,
+    )
+
+def ensure_custom_parse_assets(opt):
+    """Tự động sinh parse map từ ảnh người và pose map tương ứng."""
+    if not getattr(opt, 'custom_parse', False):
+        return
+
+    # Xác định thư mục chứa pose json đầu vào dựa trên cấu hình custom_pose
+    if getattr(opt, 'custom_pose', False):
+        json_dir = opt.custom_pose_json_dir
+    else:
+        json_dir = os.path.join(opt.dataset_dir, opt.dataset_mode, 'openpose-json')
+
+    image_dir = os.path.join(opt.dataset_dir, opt.dataset_mode, 'image')
+    file_list_path = os.path.join(opt.dataset_dir, opt.dataset_list)
+
+    # Import hàm xử lý từ gen_parse.py
+    from gen_parse import process_directory
+
+    print(f"[ensure_custom_parse] Bắt đầu tạo parse map sử dụng pose tại: {json_dir}")
+    process_directory(
+        image_dir=image_dir,
+        json_dir=json_dir,
+        output_color_dir=opt.custom_parse_color_dir,
+        output_mask_dir=opt.custom_parse_dir,
+        model_path=opt.custom_parse_model,
+        file_list_path=file_list_path
     )
 
 
@@ -213,7 +244,9 @@ def main():
     if not os.path.exists(os.path.join(opt.save_dir, opt.name)):
         os.makedirs(os.path.join(opt.save_dir, opt.name))
 
+    # Thực hiện tuần tự: Tạo pose trước (nếu có), sau đó tạo parse
     ensure_custom_pose_assets(opt)
+    ensure_custom_parse_assets(opt)
     
     seg = SegGenerator(opt, input_nc=opt.semantic_nc + 8, output_nc=opt.semantic_nc)
     gmm = GMM(opt, inputA_nc=7, inputB_nc=3)

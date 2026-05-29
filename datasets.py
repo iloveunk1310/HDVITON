@@ -32,6 +32,8 @@ class VITONDataset(data.Dataset):
         self.custom_pose = getattr(opt, 'custom_pose', False)
         self.custom_pose_json_dir = getattr(opt, 'custom_pose_json_dir', 'test_pose')
         self.custom_pose_img_dir = getattr(opt, 'custom_pose_img_dir', 'test_pose_img')
+        self.custom_parse = getattr(opt, 'custom_parse', False)
+        self.custom_parse_dir = getattr(opt, 'custom_parse_dir', 'test_parse_mask')      
         self.transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
@@ -200,9 +202,9 @@ class VITONDataset(data.Dataset):
         for key in self.c_names:
             c_name[key] = self.c_names[key][index]
             c[key] = Image.open(osp.join(self.data_path, 'cloth', c_name[key])).convert('RGB')
-            c[key] = transforms.Resize(self.load_width, interpolation=2)(c[key])
+            c[key] = transforms.Resize((self.load_height, self.load_width), interpolation=2)(c[key])
             cm[key] = self._load_cloth_mask(c_name[key])
-            cm[key] = transforms.Resize(self.load_width, interpolation=0)(cm[key])
+            cm[key] = transforms.Resize((self.load_height, self.load_width), interpolation=0)(cm[key])
 
             c[key] = self.transform(c[key])  # [-1,1]
             cm_array = np.array(cm[key])
@@ -217,7 +219,7 @@ class VITONDataset(data.Dataset):
         else:
             pose_img_root = osp.join(self.data_path, 'openpose-img')
         pose_rgb = Image.open(osp.join(pose_img_root, pose_name))
-        pose_rgb = transforms.Resize(self.load_width, interpolation=2)(pose_rgb)
+        pose_rgb = transforms.Resize((self.load_height, self.load_width), interpolation=2)(pose_rgb)
         pose_rgb = self.transform(pose_rgb)  # [-1,1]
 
         pose_name = img_name.replace('.jpg', '_keypoints.json')
@@ -233,8 +235,14 @@ class VITONDataset(data.Dataset):
 
         # load parsing image
         parse_name = img_name.replace('.jpg', '.png')
-        parse = Image.open(osp.join(self.data_path, 'image-parse', parse_name))
-        parse = transforms.Resize(self.load_width, interpolation=0)(parse)
+        
+        if self.custom_parse:
+            parse_path = osp.join(self.custom_parse_dir, parse_name)
+        else:
+            parse_path = osp.join(self.data_path, 'image-parse', parse_name)
+            
+        parse = Image.open(parse_path)
+        parse = transforms.Resize((self.load_height, self.load_width), interpolation=0)(parse)
         parse_agnostic = self.get_parse_agnostic(parse, pose_data)
         parse_agnostic = torch.from_numpy(np.array(parse_agnostic)[None]).long()
 
@@ -262,7 +270,7 @@ class VITONDataset(data.Dataset):
 
         # load person image
         img = Image.open(osp.join(self.data_path, 'image', img_name))
-        img = transforms.Resize(self.load_width, interpolation=2)(img)
+        img = transforms.Resize((self.load_height, self.load_width), interpolation=2)(img)
         img_agnostic = self.get_img_agnostic(img, parse, pose_data)
         img = self.transform(img)
         img_agnostic = self.transform(img_agnostic)  # [-1,1]
