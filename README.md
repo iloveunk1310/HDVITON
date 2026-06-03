@@ -127,13 +127,18 @@ python test.py --name run_custom_pose \
   --custom_pose_device cpu
 ```
 
-### 5.4 Kết hợp custom mask + custom pose
+### 5.4 Dùng parse tự tạo
 
 ```bash
-python test.py --name run_all_custom \
-  --custom_mask --custom_mask_cache_dir test_mask \
-  --custom_pose
+python test.py --name run_custom_parse --custom_parse
 ```
+
+### 5.5 Kết hợp custom mask + custom pose + custom_parse
+
+```bash
+python test.py --name run_all_custom --custom_mask --custom_pose --custom_parse
+```
+
 
 Kết quả try-on được lưu ở:
 
