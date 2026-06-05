@@ -25,6 +25,13 @@ transform = T.Compose([
     T.Normalize([0.5]*3, [0.5]*3)
 ])
 
+def rename_files(dir_path):
+    for file in os.listdir(dir_path):
+        if len(file) > 6:
+            new_name = file[6:]
+            os.rename(os.path.join(dir_path, file), os.path.join(dir_path, new_name))
+            #print(f"Đã đổi: {file} -> {new_name}")
+
 def compute_ssim_single(pred_path, gt_path):
     """
 
@@ -100,4 +107,5 @@ def evaluate(gen_dir, gt_dir, device='cpu'):
     return {"ssim": np.mean(ssim_scores), "lpips": np.mean(lpips_scores), "fid": fid}
 
 if __name__ == "__main__":
-    evaluate("results/run_custom_mask", "results/ground_truth")
+    rename_files("results/run_custom_all")
+    evaluate("results/run_custom_all", "datasets/test/image")

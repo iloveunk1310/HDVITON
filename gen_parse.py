@@ -50,11 +50,11 @@ class AttentionGate(nn.Module):
     Tham khảo: Attention U-Net (Oktay et al., 2018).
  
     Input:
-        g : gating signal từ decoder  (B, f_g, H, W) — độ phân giải thấp hơn
-        x : skip connection từ encoder (B, f_l, H, W) — cùng độ phân giải với output
+        g : gating signal từ decoder  (B, f_g, H, W) - độ phân giải thấp hơn
+        x : skip connection từ encoder (B, f_l, H, W) - cùng độ phân giải với output
  
     Output:
-        (B, f_l, H, W) — skip connection đã được nhân với attention map [0,1]
+        (B, f_l, H, W) - skip connection đã được nhân với attention map [0,1]
     """
     def __init__(self, f_g: int, f_l: int, f_int: int):
         super().__init__()
@@ -197,23 +197,23 @@ def process_directory(image_dir, json_dir, output_color_dir, output_mask_dir, mo
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"[*] Khởi tạo thiết bị: {device}")
 
-    # 1. LOAD MODEL (Chỉ load 1 lần duy nhất)
+    # Load Model (Chỉ load 1 lần duy nhất)
     model = ResUNet(in_ch=21, num_classes=20).to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
     print("[*] Đã load trọng số mô hình thành công.")
 
-    # 2. TẠO THƯ MỤC OUTPUT NẾU CHƯA CÓ
+    # Tạo thư mục output nếu chưa có
     os.makedirs(output_color_dir, exist_ok=True)
     os.makedirs(output_mask_dir, exist_ok=True)
 
-    # 3. LẤY DANH SÁCH FILE CẦN XỬ LÝ
+    # Lấy danh sách file cần xử lý
     filenames = []
     if file_list_path and os.path.exists(file_list_path):
-        # Nếu truyền vào 1 file txt chứa danh sách tên (vd: test_pairs.txt)
+        # Nếu truyền vào 1 file txt chứa danh sách tên 
         with open(file_list_path, 'r') as f:
             for line in f:
-                # Tách lấy tên file ảnh (giả sử format là "00001_00.jpg 00001_00.jpg")
+                # Tách lấy tên file ảnh 
                 img_name = line.strip().split()[0]
                 if img_name:
                     filenames.append(img_name)
@@ -223,12 +223,12 @@ def process_directory(image_dir, json_dir, output_color_dir, output_mask_dir, mo
 
     print(f"[*] Tìm thấy {len(filenames)} ảnh cần xử lý. Bắt đầu chạy...")
 
-    # 4. VÒNG LẶP SUY LUẬN (INFERENCE LOOP)
+    # Vòng lặp suy luận 
     # Dùng tqdm để hiển thị thanh tiến trình cho chuyên nghiệp
     for filename in tqdm(filenames, desc="Processing Images"):
         img_path = os.path.join(image_dir, filename)
         
-        # Suy luận tên file JSON theo chuẩn VITON-HD (Ví dụ: 00001_00.jpg -> 00001_00_keypoints.json)
+        # Suy luận tên file JSON theo chuẩn VITON-HD 
         base_name = os.path.splitext(filename)[0]
         json_name = f"{base_name}_keypoints.json"
         json_path = os.path.join(json_dir, json_name)
@@ -239,7 +239,7 @@ def process_directory(image_dir, json_dir, output_color_dir, output_mask_dir, mo
             continue
 
         try:
-            # --- Xử lý dữ liệu ---
+            # Xử lý dữ liệu 
             img_pil = Image.open(img_path).convert('RGB')
             orig_w, orig_h = img_pil.size
             target_w, target_h = 192, 256
@@ -252,20 +252,20 @@ def process_directory(image_dir, json_dir, output_color_dir, output_mask_dir, mo
             # Ghép Tensor và đẩy lên GPU/CPU
             input_tensor = torch.cat([img_tensor, pose_tensor], dim=0).unsqueeze(0).to(device)
 
-            # --- Chạy Model ---
+            # Chạy Model 
             with torch.no_grad():
                 output = model(input_tensor)
                 parse_pred = torch.argmax(output, dim=1).squeeze(0).cpu().numpy()
 
             hr_w, hr_h = 768, 1024 
-            # 1. Rescale Mask thô (BẮT BUỘC DÙNG INTER_NEAREST)
+            # Rescale Mask thô 
             parse_pred_hr = cv2.resize(
                 parse_pred.astype(np.uint8), 
                 (hr_w, hr_h), 
                 interpolation=cv2.INTER_NEAREST
             )
 
-            # 2. Rescale Ảnh màu (Để làm báo cáo cho đẹp)
+            # Rescale Ảnh màu
             parse_color = np.zeros((target_h, target_w, 3), dtype=np.uint8)
             for class_idx in range(20):
                 parse_color[parse_pred == class_idx] = PARSE_COLORS[class_idx]
@@ -289,7 +289,6 @@ def process_directory(image_dir, json_dir, output_color_dir, output_mask_dir, mo
 # CÁCH CHẠY THỬ
 # ==========================================
 if __name__ == "__main__":
-    # Điền đường dẫn thực tế của bạn vào đây
     IMG_PATH = "datasets/test/image"
     JSON_PATH =  "datasets/test/openpose-json" 
     MODEL_WEIGHTS = "checkpoints/best_pose_unet.pth"
