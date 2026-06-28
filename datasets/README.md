@@ -41,6 +41,13 @@ sửa
 ```
 python src/eval_all.py
 ```
+### Chạy eval trên bonus_data 
+* Copy file vn_celeb.bin (link bên dưới) vào thư mục src/eval_datasets (cùng với các dataset khác như cplfw.bin, calfw.bin, ...)
+* Thêm dòng ```"vn-celeb": "eval_datasets/vn_celeb.bin"``` vào danh sách dataset dùng để eval trong src/eval_all.py
+* Chạy tương tự các bước trên, kết quả sẽ nằm chung trong thư mục 'output'.
+
+### Kết quả evaluation
+Kết quả evaluation, cùng với bonus_data nằm trong link [Drive](https://drive.google.com/drive/folders/1eNFC5PqSRm0PJXj5ObmfXNmTl8OOOu1A?usp=sharing)
 
 ---
 
